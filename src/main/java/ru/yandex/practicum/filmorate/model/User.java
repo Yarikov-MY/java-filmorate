@@ -22,12 +22,4 @@ public class User {
     private String name;
     @PastOrPresent
     private LocalDate birthday;
-
-    public String getName() {
-        if (this.name == null) {
-            return login;
-        } else {
-            return name;
-        }
-    }
 }

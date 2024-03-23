@@ -1,9 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.AlreadyExistsException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
@@ -12,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -26,11 +31,12 @@ public class UserController {
             user.setId(id.incrementAndGet());
             users.put(user.getId(), user);
         } else {
-            log.warn("Ошибка добавления пользователя!");
-            throw new AlreadyExistsException("Такой пользователь уже добавлен!");
+            String message = String.format("Пользователь с id={%s} уже добавлен!", user.getId());
+            log.warn(message);
+            throw new AlreadyExistsException(message);
         }
         log.info("Добавлен пользователь с id={}!", user.getId());
-        return user;
+        return replaceNameToLoginIfNameNull(user);
     }
 
     @PutMapping("/users")
@@ -39,16 +45,25 @@ public class UserController {
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
         } else {
-            log.warn("Ошибка обновления пользователя!");
-            throw new NotFoundException("Такой пользователь не найден!");
+            String message = String.format("Пользователь с id={%s} не найден!", user.getId());
+            log.warn(message);
+            throw new NotFoundException(message);
         }
         log.info("Обновлен пользователь с id={}!", user.getId());
-        return user;
+        return replaceNameToLoginIfNameNull(user);
     }
 
     @GetMapping("/users")
     public List<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+        return new ArrayList<>(users.values()).stream().map(this::replaceNameToLoginIfNameNull).collect(Collectors.toList());
+    }
+
+    private User replaceNameToLoginIfNameNull(User user) {
+        if (user.getName() == null) {
+            return new User(user.getId(), user.getEmail(), user.getLogin(), user.getLogin(), user.getBirthday());
+        } else {
+            return user;
+        }
     }
 
 }

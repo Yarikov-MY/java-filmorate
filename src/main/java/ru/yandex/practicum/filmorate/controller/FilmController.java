@@ -1,9 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.AlreadyExistsException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistsException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
@@ -26,8 +30,9 @@ public class FilmController {
             film.setId(id.incrementAndGet());
             films.put(film.getId(), film);
         } else {
-            log.warn("Ошибка добавления фильма!");
-            throw new AlreadyExistsException("Такой фильм уже добавлен!");
+            String message = String.format("Фильм с id={%s} уже добавлен!", film.getId());
+            log.warn(message);
+            throw new AlreadyExistsException(message);
         }
         log.info("Добавлен фильм с id={}!", film.getId());
         return film;
@@ -39,8 +44,9 @@ public class FilmController {
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
         } else {
-            log.warn("Ошибка обновления фильма с id={}!", film.getId());
-            throw new NotFoundException("Такой фильм не найден!");
+            String message = String.format("Фильм с id={%s} не найден!", film.getId());
+            log.warn(message);
+            throw new NotFoundException(message);
         }
         log.info("Обновлен фильм с id={}!", film.getId());
         return film;
